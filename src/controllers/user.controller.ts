@@ -4,18 +4,21 @@ import * as bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 
+const RefreshTokenSecret = process.env.JWT_REFRESH_SECRET || "";
+const AccessTokenSecret = process.env.JWT_ACCESS_SECRET || "";
+
 export const refreshTokenGenerator = (payload: {
   email: string;
   id: Types.ObjectId;
 }) => {
-  return jwt.sign(payload, "KRUP123_REFRESH", { expiresIn: "30d" });
+  return jwt.sign(payload, RefreshTokenSecret, { expiresIn: "30d" });
 };
 
 export const accessTokenGenerator = (payload: {
   email: string;
   id: Types.ObjectId;
 }) => {
-  return jwt.sign(payload, "KRUP123", { expiresIn: "10s" });
+  return jwt.sign(payload, AccessTokenSecret, { expiresIn: "10s" });
 };
 
 export const signup = async (req: Request, res: Response) => {
@@ -23,7 +26,7 @@ export const signup = async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
     const userExist = await User.findOne({ email });
     if (userExist) {
-      return res.status(400).json({ message: "User ALready Exist" });
+      return res.status(400).json({ message: "User Already Exist" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -42,10 +45,13 @@ export const signup = async (req: Request, res: Response) => {
 
     const refreshToken = refreshTokenGenerator(payload);
 
+    console.log("RefreshTokenSecret", RefreshTokenSecret);
+    console.log("AccessTokenSecret", AccessTokenSecret);
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false,
+      path: "/",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
@@ -80,8 +86,8 @@ export const login = async (req: Request, res: Response) => {
     const refreshToken = refreshTokenGenerator(payload);
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false, // <-- MUST be false on localhost
-      sameSite: "lax", // <-- "none" requires https
+      path: "/",
+      secure: false,
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
@@ -118,13 +124,15 @@ export const logout = async (req: Request, res: Response) => {
 export const refreshToken = async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-    console.log(refreshToken);
+    console.log("Incoming Cookies:", req.cookies);
+    console.log("Request Origin:", req.headers.origin);
+    console.log("RefreshToken value:", refreshToken);
 
     if (!refreshToken) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const decoded = jwt.verify(refreshToken, "KRUP123_REFRESH") as {
+    const decoded = jwt.verify(refreshToken, RefreshTokenSecret) as {
       email: string;
       id: Types.ObjectId;
     };
@@ -138,8 +146,8 @@ export const refreshToken = async (req: Request, res: Response) => {
     // Update cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false,
+      path: "/",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 

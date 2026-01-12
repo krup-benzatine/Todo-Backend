@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import { DBconnection } from "./src/db";
 import authRoutes from "./src/routes/auth.routes";
@@ -17,11 +18,10 @@ app.get("/", (req, res) => {
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: true, // Allow any origin in development or match specific URLs
     credentials: true,
   })
 );
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

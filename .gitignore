@@ -1,40 +1,43 @@
-# Dependency directories
-node_modules/
-jspm_packages/ # if you use jspm
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Production build output
-build/
-dist/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Logs
-logs
-*.log
+# testing
+/coverage
+
+# next.js
+/out/
+.env.local
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# OS and Editor files
-.DS_Store # macOS
-Thumbs.db # Windows
-.idea/ # JetBrains IDEs
-.vscode/ # VS Code (optional, if you have user-specific settings)
-*.iml # JetBrains IDEs
+# env files (can opt-in for committing if needed)
+.env*
 
-# Optional caches
-.npm/
-.eslintcache
-.jest-cache/
-coverage/ # Test coverage reports
+# vercel
+.vercel
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+package-lock.json
 
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
+/.next/
