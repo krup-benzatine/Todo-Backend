@@ -45,9 +45,6 @@ export const signup = async (req: Request, res: Response) => {
 
     const refreshToken = refreshTokenGenerator(payload);
 
-    console.log("RefreshTokenSecret", RefreshTokenSecret);
-    console.log("AccessTokenSecret", AccessTokenSecret);
-
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
@@ -95,7 +92,7 @@ export const login = async (req: Request, res: Response) => {
 
     res
       .status(200)
-      .json({ message: "Login Successful", user, token, ref: refreshToken });
+      .json({ message: "Login Successful", user, token});
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -124,9 +121,6 @@ export const logout = async (req: Request, res: Response) => {
 export const refreshToken = async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-    console.log("Incoming Cookies:", req.cookies);
-    console.log("Request Origin:", req.headers.origin);
-    console.log("RefreshToken value:", refreshToken);
 
     if (!refreshToken) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -139,11 +133,9 @@ export const refreshToken = async (req: Request, res: Response) => {
 
     const payload = { email: decoded.email, id: decoded.id };
 
-    // Generate new access + refresh token
     const newAccessToken = accessTokenGenerator(payload);
     const newRefreshToken = refreshTokenGenerator(payload);
 
-    // Update cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: false,
