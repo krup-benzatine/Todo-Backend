@@ -5,6 +5,8 @@ export const CreateTask = async (req: Request, res: Response) => {
   try {
     const taskDetails = req.body;
 
+    console.log("helllloo",taskDetails)
+
     if (!taskDetails) {
       return res.status(400).json({ message: "Task Details Not Found" });
     }
@@ -47,9 +49,9 @@ export const DeleteTask = async (req: Request, res: Response) => {
 export const UpdateTask = async (req: Request, res: Response) => {
   try {
     const taskId = req.params.id;
-    const updatedTitle = req.body;
+    const updatedData = req.body;
     await TaskModel.findByIdAndUpdate(taskId, {
-      title: updatedTitle.title,
+      ...updatedData,
     });
     return res.status(200).json({ message: "Task Updated Successfully" });
   } catch (error) {

@@ -6,6 +6,10 @@ const TaskSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
+    cardColor:{
+      type:String,
+      require:false
+    },
     creater: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
