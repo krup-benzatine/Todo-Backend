@@ -37,8 +37,21 @@ export const GetTask = async (req: Request, res: Response) => {
 export const DeleteTask = async (req: Request, res: Response) => {
   try {
     const taskId = req.params.id;
-    await TaskModel.findByIdAndDelete({ _id: taskId });
+    await TaskModel.findByIdAndDelete(taskId);
     return res.status(200).json({ message: "Task Deleted Successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const UpdateTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id;
+    const updatedTitle = req.body;
+    await TaskModel.findByIdAndUpdate(taskId, {
+      title: updatedTitle.title,
+    });
+    return res.status(200).json({ message: "Task Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Server Error" });
   }

@@ -6,19 +6,25 @@ import { Types } from "mongoose";
 
 const RefreshTokenSecret = process.env.JWT_REFRESH_SECRET || "";
 const AccessTokenSecret = process.env.JWT_ACCESS_SECRET || "";
+const RefreshTokenExpire = process.env.JWT_REFRESH_TOKEN_EXPIRE || "";
+const AccessTokenExpire = process.env.JWT_ACCESS_TOKEN_EXPIRE || "";
 
 export const refreshTokenGenerator = (payload: {
   email: string;
   id: Types.ObjectId;
 }) => {
-  return jwt.sign(payload, RefreshTokenSecret, { expiresIn: "30d" });
+  return jwt.sign(payload, RefreshTokenSecret, {
+    expiresIn: RefreshTokenExpire as any,
+  });
 };
 
 export const accessTokenGenerator = (payload: {
   email: string;
   id: Types.ObjectId;
 }) => {
-  return jwt.sign(payload, AccessTokenSecret, { expiresIn: "10s" });
+  return jwt.sign(payload, AccessTokenSecret, {
+    expiresIn: AccessTokenExpire as any,
+  });
 };
 
 export const signup = async (req: Request, res: Response) => {
@@ -90,9 +96,7 @@ export const login = async (req: Request, res: Response) => {
 
     const token = accessTokenGenerator(payload);
 
-    res
-      .status(200)
-      .json({ message: "Login Successful", user, token});
+    res.status(200).json({ message: "Login Successful", user, token });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
