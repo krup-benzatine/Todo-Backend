@@ -6,9 +6,13 @@ const TaskSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
-    cardColor:{
-      type:String,
-      require:false
+    cardColor: {
+      type: String,
+      require: false,
+    },
+    isCompleted: {
+      type: Boolean,
+      default: false,
     },
     creater: {
       type: mongoose.Schema.Types.ObjectId,
@@ -16,7 +20,7 @@ const TaskSchema = new mongoose.Schema(
       require: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const TaskModel = mongoose.model("Task", TaskSchema);
