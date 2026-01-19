@@ -3,6 +3,8 @@ import { Request, response, Response } from "express";
 import * as bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
+import crypto from "crypto";
+import sendEmail from "../utils/nodeMailer";
 
 const RefreshTokenSecret = process.env.JWT_REFRESH_SECRET || "";
 const AccessTokenSecret = process.env.JWT_ACCESS_SECRET || "";
@@ -153,5 +155,66 @@ export const refreshToken = async (req: Request, res: Response) => {
     });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server error" });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    console.log(email);
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User Not Found" });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    console.log("reser", resetToken);
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
+    await user.save();
+
+    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    console.log("url", resetURL);
+
+    const message = "Click to reset Password " + resetURL;
+
+    await sendEmail({
+      to: email,
+      subject: "Reset Password",
+      text: message,
+    });
+
+    return res.status(200).json({ message: "Email Sent Successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = req.body;
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid Token" });
+    }
+    const newHashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = newHashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+    return res.status(200).json({ message: "Password Reset Successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
