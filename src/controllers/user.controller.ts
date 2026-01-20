@@ -1,4 +1,4 @@
-import { TokenBlacklist, User } from "../models/user/userModel";
+import { Otp, TokenBlacklist, User } from "../models/user/userModel";
 import { Request, response, Response } from "express";
 import * as bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -214,6 +214,75 @@ export const resetPassword = async (req: Request, res: Response) => {
     user.resetPasswordExpire = undefined;
     await user.save();
     return res.status(200).json({ message: "Password Reset Successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const generateOTP = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "User Already Exists" });
+    }
+    const existingOtp = await Otp.findOne({ email });
+    const OTP_EXPIRY_TIME = 5 * 60 * 1000;
+
+    let otpToSend: number;
+
+    if (existingOtp) {
+      const isExpired =
+        existingOtp.createdAt.getTime() < Date.now() - OTP_EXPIRY_TIME;
+
+      if (isExpired) {
+        otpToSend = Math.floor(1000 + Math.random() * 9000);
+
+        existingOtp.otp = otpToSend;
+        existingOtp.createdAt = new Date();
+        await existingOtp.save();
+      } else {
+        otpToSend = existingOtp.otp;
+      }
+    } else {
+      otpToSend = Math.floor(1000 + Math.random() * 9000);
+
+      await Otp.create({
+        email,
+        otp: otpToSend,
+      });
+    }
+
+    const message = `Your OTP is ${otpToSend}`;
+
+    await sendEmail({
+      to: email,
+      subject: "OTP Verification",
+      text: message,
+    });
+
+    return res.status(200).json({
+      message: "OTP sent successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const verifyOTP = async (req: Request, res: Response) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await Otp.findOne({ email, otp });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    } else if (user.createdAt.getTime() < Date.now() - 5 * 60 * 1000) {
+      return res.status(400).json({ message: "OTP Expired" });
+    } else {
+      return res.status(200).json({ message: "OTP Verified Successfully" });
+    }
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
