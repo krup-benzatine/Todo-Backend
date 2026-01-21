@@ -1,11 +1,9 @@
-import { Request, response, Response } from "express";
+import { Request, Response } from "express";
 import { TaskModel } from "../models/tasks/taskModel";
 
 export const CreateTask = async (req: Request, res: Response) => {
   try {
     const taskDetails = req.body;
-
-    console.log("helllloo",taskDetails)
 
     if (!taskDetails) {
       return res.status(400).json({ message: "Task Details Not Found" });
