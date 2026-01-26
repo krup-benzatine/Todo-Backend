@@ -34,8 +34,23 @@ export const getAllProjects = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: "Projects Fetched Successfully",
-      projects: finalProjects
+      projects: finalProjects,
     });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const updateProjectCards = async (req: Request, res: Response) => {
+  try {
+    const projectId = req.params.id;
+    const updatedData = req.body;
+    const dsfsdgfsdfg = await ProjectModel.findById(projectId, {
+      projectColumns: updatedData,
+    });
+    return res
+      .status(200)
+      .json({ message: "Project Updated Successfully", updateData :dsfsdgfsdfg });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
