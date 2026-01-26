@@ -23,6 +23,7 @@ const ProjectSchema = new mongoose.Schema(
         },
       },
     ],
+    projectColumns:[],
     creater: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
